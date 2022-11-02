@@ -1,0 +1,60 @@
+# Default values for fdr-build umbrella chart
+
+# Common params - default values are in sub-charts
+global:
+  postgresql: {}
+  awsRegion: us-west-2
+
+# https://github.com/helm/charts/tree/master/stable/postgresql
+# Operational params set with local vars
+postgresql:
+  persistence:
+    enabled: false
+  auth:
+    database: cisdev
+
+calarm-db:
+  postgresqlDatabase: cisdev
+  postgresqlUsername: cisown                      # DB admin user
+  postgresqlPassword: COLLPLUSCGIDBCISDEV         # DB admin pass
+  service.port: 5432                              # Default
+
+replicaCount: 1
+
+image:
+  repository: 166636506311.dkr.ecr.us-west-2.amazonaws.com/calarm-collection-cis:c603e59
+  pullPolicy: Always
+
+resources:
+  limits:
+    cpu: 4
+    memory: 4Gi
+  requests:
+    cpu: 2
+    memory: 2Gi
+
+gateway:
+  domainWildcard: "calarm-cis.cammis-mod-dev.dhcs.ca.gov"         # Gateway URL
+
+service:
+  hosts: "calarm-cis.cammis-mod-dev.dhcs.ca.gov"                  # Host URL
+  port: 8080
+
+cisSecret: secret-dev-calarmcollectioncis                         # AWS secret storing Database URL, SFDC Secret and JWT Token
+
+dbmigrations:
+  enabled: true
+  image: 166636506311.dkr.ecr.us-west-2.amazonaws.com/busybox:0.0.1-scuttle
+  # the migration command can be passed in different ways, some examples are:
+  # migrationCommand: ["sh", "myscript.sh"]
+  # migrationCommand:
+  #   - sh
+  #   - myscript.sh
+  command:
+    - sh
+    - -c
+    - |
+      echo "Start - Run CIS postgres db migrations!"
+      sleep 30
+      # exit 1
+      echo "End - Run CIS postgres db migrations!"

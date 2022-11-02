@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: calarm-collection-cis-deployment
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: calarm
+  template:
+    metadata:
+      labels:
+        app: calarm
+    spec:
+      {{- if .Values.dbmigrations.enabled }}
+      initContainers:
+        - name: calarm-collection-cis-db-migration
+          image: {{ .Values.dbmigrations.image }}
+          command: {{ .Values.dbmigrations.command | toYaml | nindent 12 }}
+      {{- end }}
+      containers:
+        - name: calarm-collection-cis-server
+          image: {{ .Values.image.repository }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+          - secretRef:
+              name: calarm-collection-cis-secret
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      dnsPolicy: ClusterFirst

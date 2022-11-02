@@ -1,0 +1,22 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: calarm-collection-cis-virtual-service
+spec:
+  hosts:
+  - {{ .Values.service.hosts | quote }}
+  gateways:
+  - calarm-collection-cis-gateway
+  http:
+    - match:
+      - uri:
+          prefix: /
+      route:
+      - destination:
+          host: calarm-collection-cis-service
+          port:
+            number: {{ .Values.service.port }}
+        headers:
+          request:
+            set:
+              x-forwarded-proto: https
